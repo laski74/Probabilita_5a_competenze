@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Probabilità - esercizi guidati per la 5a</title>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']],
+        processEscapes: true
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <style>
+    :root {
+      --bg: #f7f3e8;
+      --paper: #fffdf7;
+      --ink: #253039;
+      --muted: #65727e;
+      --line: #ded6c7;
+      --teal: #177e89;
+      --coral: #de6b48;
+      --gold: #e5b349;
+      --green: #6a994e;
+      --blue: #3b6ea8;
+      --violet: #7353ba;
+      --shadow: rgba(48, 39, 31, 0.14);
+      --radius: 8px;
+      --topbar: 76px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Arial, "Segoe UI", sans-serif;
+      line-height: 1.58;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(229, 179, 73, 0.18) 0 9rem, transparent 9.1rem),
+        radial-gradient(circle at 88% 12%, rgba(23, 126, 137, 0.12) 0 8rem, transparent 8.1rem),
+        linear-gradient(135deg, rgba(255,255,255,0.7), rgba(255,255,255,0)),
+        var(--bg);
+    }
+
+    button, input { font: inherit; }
+
+    a { color: inherit; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      min-height: var(--topbar);
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto auto;
+      gap: 1rem;
+      align-items: center;
+      padding: 0.75rem clamp(1rem, 3vw, 2rem);
+      background: rgba(255, 253, 247, 0.94);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(1.1rem, 2vw, 1.55rem);
+      line-height: 1.1;
+    }
+
+    .brand p {
+      margin: 0.25rem 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .tab-button,
+    .tool-button,
+    .jump-link,
+    .score-button {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+
+    .tab-button {
+      min-height: 2.35rem;
+      padding: 0.42rem 0.72rem;
+      font-weight: 700;
+    }
+
+    .tab-button[aria-selected="true"] {
+      background: var(--teal);
+      border-color: var(--teal);
+      color: #fff;
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+
+    .tool-button,
+    .score-button {
+      min-height: 2.35rem;
+      padding: 0.42rem 0.75rem;
+      font-weight: 700;
+    }
+
+    .tool-button:hover,
+    .score-button:hover,
+    .tab-button:hover,
+    .jump-link:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 230px minmax(0, 1fr);
+      gap: 1.25rem;
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 1.25rem clamp(1rem, 3vw, 2rem) 4rem;
+    }
+
+    .side {
+      position: sticky;
+      top: calc(var(--topbar) + 1rem);
+      align-self: start;
+      max-height: calc(100vh - var(--topbar) - 2rem);
+      overflow: auto;
+      padding: 0.85rem;
+      background: rgba(255, 253, 247, 0.92);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 26px var(--shadow);
+    }
+
+    .side-title {
+      margin: 0 0 0.55rem;
+      font-weight: 800;
+      color: var(--teal);
+    }
+
+    .jump-list {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .jump-link {
+      display: block;
+      padding: 0.42rem 0.55rem;
+      text-decoration: none;
+      font-size: 0.92rem;
+      line-height: 1.25;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(1.1rem, 3vw, 1.8rem);
+      background: linear-gradient(135deg, #fffdf7, #eef7f4);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px var(--shadow);
+    }
+
+    .hero h2 {
+      margin: 0 0 0.5rem;
+      font-size: clamp(1.55rem, 4vw, 2.45rem);
+      line-height: 1.05;
+    }
+
+    .hero p {
+      max-width: 760px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.02rem;
+    }
+
+    .section-note {
+      margin: 1rem 0 0;
+      padding: 0.85rem 1rem;
+      border-left: 5px solid var(--gold);
+      background: rgba(255, 253, 247, 0.8);
+      border-radius: 0 var(--radius) var(--radius) 0;
+    }
+
+    .exercise {
+      margin: 1rem 0;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 22px var(--shadow);
+      overflow: hidden;
+      scroll-margin-top: calc(var(--topbar) + 1rem);
+    }
+
+    .exercise-header {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 0.8rem;
+      align-items: start;
+      padding: 1rem;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(90deg, rgba(23,126,137,0.09), rgba(229,179,73,0.08));
+    }
+
+    .badge {
+      min-width: 2.25rem;
+      height: 2.25rem;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--coral);
+      color: #fff;
+      font-weight: 900;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.65rem;
+      padding: 0.12rem 0.45rem;
+      border-radius: 6px;
+      background: rgba(23, 126, 137, 0.12);
+      color: #0c5d65;
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .exercise h3 {
+      margin: 0;
+      font-size: 1.08rem;
+      line-height: 1.25;
+    }
+
+    .exercise-body { padding: 1rem; }
+
+    .prompt {
+      margin: 0 0 0.85rem;
+      font-size: 1.02rem;
+    }
+
+    .parts {
+      margin: 0.7rem 0;
+      padding-left: 1.25rem;
+    }
+
+    .parts li { margin: 0.28rem 0; }
+
+    details {
+      margin-top: 0.75rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fffaf0;
+    }
+
+    details.theory { background: #f1faf7; }
+
+    summary {
+      cursor: pointer;
+      padding: 0.72rem 0.85rem;
+      font-weight: 800;
+      color: var(--teal);
+    }
+
+    .detail-content {
+      padding: 0 0.9rem 0.9rem;
+      color: #33404a;
+    }
+
+    .detail-content p { margin: 0.45rem 0; }
+
+    .formula-box {
+      margin: 0.65rem 0;
+      padding: 0.75rem;
+      border-radius: var(--radius);
+      background: rgba(59, 110, 168, 0.08);
+      border: 1px solid rgba(59, 110, 168, 0.22);
+    }
+
+    .quiz-panel {
+      display: grid;
+      gap: 0.7rem;
+      margin: 1rem 0;
+      padding: 1rem;
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+    }
+
+    .quiz-row {
+      display: grid;
+      grid-template-columns: minmax(120px, 1fr) minmax(160px, 260px);
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .quiz-row input {
+      min-height: 2.25rem;
+      padding: 0.35rem 0.55rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .quiz-row.correct input { border-color: var(--green); background: rgba(106,153,78,0.1); }
+    .quiz-row.wrong input { border-color: var(--coral); background: rgba(222,107,72,0.11); }
+
+    .score-area {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 0.8rem;
+    }
+
+    .score-button {
+      background: var(--violet);
+      color: #fff;
+      border-color: var(--violet);
+    }
+
+    .score-output {
+      font-weight: 900;
+      color: var(--violet);
+    }
+
+    .dsa-mode body,
+    body.dsa-mode {
+      font-family: Arial, sans-serif;
+      letter-spacing: 0;
+      line-height: 1.85;
+    }
+
+    body.dsa-mode .layout {
+      grid-template-columns: 205px minmax(0, 1fr);
+    }
+
+    body.dsa-mode .exercise-body,
+    body.dsa-mode .detail-content {
+      font-size: 1.08rem;
+    }
+
+    body.dsa-mode .exercise {
+      margin: 1.3rem 0;
+    }
+
+    body.dsa-mode .prompt {
+      max-width: 74ch;
+    }
+
+    mark {
+      background: rgba(229, 179, 73, 0.35);
+      padding: 0 0.16rem;
+      border-radius: 4px;
+    }
+
+    @media (max-width: 900px) {
+      :root { --topbar: 118px; }
+
+      .topbar {
+        grid-template-columns: 1fr;
+        gap: 0.6rem;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .side {
+        top: var(--topbar);
+        max-height: 160px;
+      }
+
+      .jump-list {
+        grid-template-columns: repeat(auto-fit, minmax(82px, 1fr));
+      }
+
+    }
+
+    @media (max-width: 640px) {
+      .exercise-header {
+        grid-template-columns: auto 1fr;
+      }
+
+      .exercise-header .tag {
+        grid-column: 1 / -1;
+        width: fit-content;
+      }
+
+      .quiz-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media print {
+      .topbar, .side, .score-area { display: none; }
+      .layout { display: block; max-width: none; padding: 0; }
+      body { background: #fff; }
+      .panel { display: block; break-before: page; }
+      .exercise, .hero { box-shadow: none; break-inside: avoid; }
+      details { border-color: #999; }
+      details:not([open]) .detail-content { display: block; }
+      details:not([open]) { open: true; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <h1>Probabilità: esercizi guidati</h1>
+      <p>Classe quinta - dai fondamentali alla verifica</p>
+    </div>
+    <nav class="tabs" aria-label="Schede">
+      <button class="tab-button" type="button" data-tab="fondamentali" aria-selected="true">Fondamentali</button>
+      <button class="tab-button" type="button" data-tab="competenze" aria-selected="false">Competenze</button>
+      <button class="tab-button" type="button" data-tab="verifica" aria-selected="false">Verifica competenze</button>
+    </nav>
+    <button class="tool-button" type="button" id="dsaToggle" aria-pressed="false">Modalità DSA/BES</button>
+  </header>
+
+  <div class="layout">
+    <aside class="side" aria-label="Menu esercizi">
+      <p class="side-title" id="sideTitle">Esercizi fondamentali</p>
+      <nav class="jump-list" id="jumpList"></nav>
+    </aside>
+
+    <main>
+      <section class="panel active" id="panel-fondamentali" data-title="Esercizi fondamentali"></section>
+      <section class="panel" id="panel-competenze" data-title="Esercizi competenze"></section>
+      <section class="panel" id="panel-verifica" data-title="Verifica competenze"></section>
+    </main>
+  </div>
+
+  <script>
+    const theory = {
+      classica: {
+        title: "Approfondimento: definizione classica",
+        body: "Si usa quando tutti i casi possibili sono equiprobabili: \\(P(E)=\\frac{\\text{casi favorevoli}}{\\text{casi possibili}}\\). Prima si conta lo spazio campionario, poi si contano solo i casi che realizzano l'evento."
+      },
+      somma: {
+        title: "Approfondimento: somma logica",
+        body: "Per due eventi compatibili vale \\(P(A\\cup B)=P(A)+P(B)-P(A\\cap B)\\). Se sono incompatibili, l'intersezione è vuota e il termine da sottrarre è zero."
+      },
+      prodotto: {
+        title: "Approfondimento: prodotto logico",
+        body: "Per eventi indipendenti si moltiplica: \\(P(A\\cap B)=P(A)\\cdot P(B)\\). Se gli eventi sono dipendenti, si usa \\(P(A\\cap B)=P(A)\\cdot P(B\\mid A)\\)."
+      },
+      bernoulli: {
+        title: "Approfondimento: prove ripetute",
+        body: "Se una prova ha probabilità di successo \\(p\\) e viene ripetuta \\(n\\) volte in modo indipendente, allora \\(P(X=k)=\\binom{n}{k}p^k(1-p)^{n-k}\\). Le parole 'almeno' e 'al più' indicano quasi sempre una somma di casi."
+      },
+      condizionata: {
+        title: "Approfondimento: probabilità condizionata",
+        body: "La probabilità \\(P(A\\mid B)\\) legge: probabilità di \\(A\\), sapendo che \\(B\\) è già accaduto. La formula è \\(P(A\\mid B)=\\frac{P(A\\cap B)}{P(B)}\\), con \\(P(B)\\neq 0\\)."
+      },
+      bayes: {
+        title: "Approfondimento: Bayes",
+        body: "Bayes ribalta il punto di vista: dall'effetto osservato si risale alla causa più probabile. In due cause \\(C_1,C_2\\): \\(P(C_1\\mid E)=\\frac{P(C_1)P(E\\mid C_1)}{P(C_1)P(E\\mid C_1)+P(C_2)P(E\\mid C_2)}\\)."
+      },
+      soggettiva: {
+        title: "Approfondimento: probabilità soggettiva",
+        body: "Nella lettura soggettiva, la probabilità è il prezzo equo che una persona accetta di pagare per ricevere 1 unità in caso di successo. Se pago 5 per ricevere 8, la probabilità implicita è \\(\\frac{5}{8}\\)."
+      }
+    };
+
+    const fundamentals = [
+      {
+        n: "1", tag: "Definizione classica",
+        prompt: "Associa a ogni evento relativo all'estrazione di una carta da un mazzo di 40 la sua probabilità.",
+        parts: ["\\(E_1\\): esce il tre di bastoni.", "\\(E_2\\): esce una carta di spade.", "\\(E_3\\): esce un re.", "\\(E_4\\): esce una figura."],
+        solution: "Nel mazzo da 40 ci sono 40 carte equiprobabili. Il tre di bastoni è una sola carta, quindi \\(P(E_1)=\\frac{1}{40}\\). Le spade sono 10, quindi \\(P(E_2)=\\frac{10}{40}=\\frac{1}{4}\\). I re sono 4, quindi \\(P(E_3)=\\frac{4}{40}=\\frac{1}{10}\\). Le figure sono 12, quindi \\(P(E_4)=\\frac{12}{40}=\\frac{3}{10}\\). Associazioni: a-2, b-4, c-1, d-3.",
+        theory: "classica"
+      },
+      {
+        n: "2", tag: "Definizione statistica",
+        prompt: "È stato lanciato un dado non regolare per 60 volte: il 3 è uscito 16 volte e il 6 è uscito 8 volte. Valuta la probabilità di ottenere un numero divisibile per 3.",
+        solution: "I numeri divisibili per 3 sul dado sono 3 e 6. Nelle 60 prove sono usciti \\(16+8=24\\) risultati favorevoli. La stima frequentista è \\(\\frac{24}{60}=\\frac{2}{5}\\).",
+        theory: "classica"
+      },
+      {
+        n: "3", tag: "Definizione soggettiva",
+        prompt: "Alan e Betty fanno una scommessa online: Alan punta 3 euro sulla propria vittoria, Betty punta 5 euro sulla sconfitta di Alan. Chi indovina prende l'intera somma. Calcola la probabilità che Betty attribuisce alla vittoria di Alan.",
+        solution: "Betty sta puntando 5 euro sull'evento contrario: la sconfitta di Alan. La sua probabilità soggettiva per la sconfitta di Alan è \\(\\frac{5}{3+5}=\\frac{5}{8}\\). Quindi la probabilità che Betty attribuisce alla vittoria di Alan è \\(1-\\frac{5}{8}=\\frac{3}{8}\\).",
+        theory: "soggettiva"
+      },
+      {
+        n: "4", tag: "Eventi compatibili",
+        prompt: "Nell'estrazione di una carta da un mazzo di 52, indica tra le coppie seguenti quali eventi sono compatibili e quali incompatibili.",
+        parts: ["\\(E_1\\): una carta nera; \\(E_2\\): un sette.", "\\(E_1\\): una figura rossa; \\(E_2\\): l'asso di cuori."],
+        solution: "La prima coppia è compatibile: può uscire un sette nero. La seconda coppia è incompatibile: l'asso di cuori è rosso, ma non è una figura.",
+        theory: "somma"
+      },
+      {
+        n: "5", tag: "Somma logica",
+        prompt: "Si lanciano due dadi. Qual è la probabilità che la somma sia 6 oppure che escano due facce uguali?",
+        solution: "Su 36 coppie possibili, la somma 6 ha 5 casi: \\((1,5),(2,4),(3,3),(4,2),(5,1)\\). Le facce uguali hanno 6 casi. Il caso \\((3,3)\\) è contato due volte, quindi si sottrae una volta: \\(\\frac{5+6-1}{36}=\\frac{10}{36}=\\frac{5}{18}\\).",
+        theory: "somma"
+      },
+      {
+        n: "6", tag: "Dipendenza e indipendenza",
+        prompt: "Stabilisci se le affermazioni sono vere o false.",
+        parts: ["Se \\(B\\) è l'evento certo, \\(P(A\\mid B)=P(A)\\).", "Se gli eventi \\(A\\) e \\(B\\) sono incompatibili, \\(P(A\\mid B)=0\\).", "Se \\(A\\) è l'evento certo, \\(P(A\\mid B)=P(B)\\).", "\\(P(A\\cup B\\mid B)=P(A)\\)."],
+        solution: "a. Vero, perché condizionare all'evento certo non cambia lo spazio dei casi. b. Vero se \\(P(B)>0\\), perché non possono verificarsi insieme. c. Falso: se \\(A\\) è certo, allora \\(P(A\\mid B)=1\\). d. Falso: sapendo che \\(B\\) è accaduto, l'evento \\(A\\cup B\\) è certo, quindi la probabilità è 1.",
+        theory: "condizionata"
+      },
+      {
+        n: "7", tag: "Prodotto logico",
+        prompt: "Katia e Serena aspettano in stazione due treni diversi. Il primo arriva in ritardo con probabilità 0,2; il secondo con probabilità 0,3. Qual è la probabilità che entrambi i treni siano in ritardo?",
+        solution: "I ritardi dei due treni sono trattati come indipendenti. Quindi \\(P=0,2\\cdot 0,3=0,06\\).",
+        theory: "prodotto"
+      },
+      {
+        n: "8", tag: "Somma e prodotto",
+        prompt: "Gli eventi \\(A\\) e \\(B\\) hanno probabilità 0,7 e 0,8, e certamente si verifica almeno uno dei due eventi. Determina \\(P(A\\cup B)\\) e \\(P(A\\cap B)\\).",
+        solution: "Se certamente si verifica almeno uno dei due eventi, allora \\(P(A\\cup B)=1\\). Dalla formula della somma: \\(1=0,7+0,8-P(A\\cap B)\\), quindi \\(P(A\\cap B)=0,5\\).",
+        theory: "somma"
+      },
+      {
+        n: "9", tag: "Prove ripetute",
+        prompt: "Si effettuano 5 estrazioni con reimmissione da un mazzo di 40 carte. Qual è la probabilità di estrarre almeno 4 re?",
+        solution: "In ogni estrazione \\(p=\\frac{4}{40}=\\frac{1}{10}\\). Serve \\(X=4\\) oppure \\(X=5\\): \\(P(X\\ge 4)=\\binom{5}{4}\\left(\\frac{1}{10}\\right)^4\\left(\\frac{9}{10}\\right)+\\left(\\frac{1}{10}\\right)^5=0,00046\\).",
+        theory: "bernoulli"
+      },
+      {
+        n: "10", tag: "Bayes: disintegrazione",
+        prompt: "Un'urna contiene 6 biglie nere e 4 rosse; una seconda urna contiene 4 biglie nere e 6 rosse. Si sceglie a caso un'urna lanciando una moneta e si estrae una pallina. Calcola la probabilità che sia rossa.",
+        solution: "La scelta dell'urna pesa \\(\\frac{1}{2}\\) e \\(\\frac{1}{2}\\). Quindi \\(P(R)=\\frac{1}{2}\\cdot\\frac{4}{10}+\\frac{1}{2}\\cdot\\frac{6}{10}=\\frac{1}{2}\\).",
+        theory: "bayes"
+      },
+      {
+        n: "11", tag: "Bayes: evento accaduto",
+        prompt: "Con le urne dell'esercizio precedente, si sceglie a caso un'urna e si estrae una biglia. Sapendo che la biglia è rossa, calcola la probabilità che provenga dalla prima urna.",
+        solution: "Usiamo Bayes: \\(P(U_1\\mid R)=\\frac{P(U_1)P(R\\mid U_1)}{P(R)}=\\frac{\\frac{1}{2}\\cdot\\frac{4}{10}}{\\frac{1}{2}}=\\frac{2}{5}\\).",
+        theory: "bayes"
+      }
+    ];
+
+    const competences = [
+      { n: "1", tag: "Argomentare", prompt: "Definisci probabilità classica, statistica e soggettiva. Analizza esempi come fare ambo al lotto, vincere una scommessa, vincere una partita a scacchi, ottenere 6 al lancio di un dado.", solution: "La probabilità classica si usa quando i casi sono equiprobabili, come il dado regolare. La statistica si usa quando stimiamo da frequenze osservate, per esempio risultati sportivi o controlli di produzione. La soggettiva misura il grado di fiducia, tipico delle scommesse. Nel lotto e nel dado domina il conteggio; nella scommessa conta anche la valutazione personale; negli scacchi la probabilità dipende da informazioni non simmetriche come abilità e posizione.", theory: "classica" },
+      { n: "2", tag: "Somma logica", prompt: "Nel lotto, considera \\(E_1\\): esce un numero pari, \\(E_2\\): esce 87, \\(E_3\\): esce un multiplo di 5, da 1 a 90. Calcola \\(P(E_1\\cup E_2)\\) e \\(P(E_1\\cup E_3)\\).", solution: "I pari sono 45. Il numero 87 non è pari, quindi \\(P(E_1\\cup E_2)=\\frac{45+1}{90}=\\frac{23}{45}\\). I multipli di 5 sono 18 e quelli pari tra essi sono 9: \\(P(E_1\\cup E_3)=\\frac{45+18-9}{90}=\\frac{3}{5}\\).", theory: "somma" },
+      { n: "3", tag: "Condizionata", prompt: "Spiega la probabilità condizionata e verifica con due dadi: \\(E_1\\): la somma è 4; \\(E_2\\): escono due numeri maggiori di 3. Calcola \\(P(E_1\\mid E_2)\\) e commenta i casi \\(E_1=U\\), \\(E_2=U\\), \\(E_1\\cap E_2=\\varnothing\\).", solution: "\\(E_2\\) contiene 9 coppie, tutte con somma almeno 8. Quindi nessuna può avere somma 4 e \\(P(E_1\\mid E_2)=0\\). Se \\(E_2=U\\), allora \\(P(E_1\\mid U)=P(E_1)\\). Se \\(E_1=U\\), allora \\(P(U\\mid E_2)=1\\). Se l'intersezione è vuota, la probabilità condizionata è 0.", theory: "condizionata" },
+      { n: "4", tag: "Indipendenza", prompt: "Con un mazzo da 52, studia le coppie: \\(A\\): esce una figura, \\(B\\): esce una carta di cuori, \\(C\\): esce una carta nera.", solution: "\\(A\\) e \\(B\\) sono indipendenti: tra le 13 carte di cuori ci sono 3 figure, quindi \\(P(A\\mid B)=\\frac{3}{13}=P(A)\\). Anche \\(A\\) e \\(C\\) sono indipendenti: tra le 26 nere ci sono 6 figure, quindi \\(\\frac{6}{26}=\\frac{3}{13}\\). Invece \\(B\\) e \\(C\\) sono incompatibili, perché una carta non può essere insieme di cuori e nera.", theory: "prodotto" },
+      { n: "5", tag: "Bernoulli", prompt: "Una macchina produce lampadine, ognuna con probabilità 2% di essere difettosa. Calcola la probabilità che su 3 lampadine nessuna sia difettosa.", solution: "La probabilità che una lampadina sia buona è \\(0,98\\). Per 3 lampadine indipendenti: \\(0,98^3=0,941192\\), circa 94,12%.", theory: "bernoulli" },
+      { n: "6", tag: "Bayes", prompt: "Una persona prende la metropolitana due giorni su sei e il taxi quattro giorni su sei. Con la metro arriva in ritardo il 70% delle volte, con il taxi l'80%. Oggi è arrivata in ritardo: qual è la probabilità che abbia preso il taxi?", solution: "\\(P(T)=\\frac{4}{6}\\), \\(P(M)=\\frac{2}{6}\\). \\(P(T\\mid R)=\\frac{\\frac{4}{6}\\cdot 0,8}{\\frac{4}{6}\\cdot 0,8+\\frac{2}{6}\\cdot 0,7}=\\frac{16}{23}\\), circa 69,6%.", theory: "bayes" },
+      { n: "7", tag: "Argomentare", prompt: "Spiega perché due eventi non impossibili non possono essere contemporaneamente incompatibili e indipendenti.", solution: "Se due eventi sono incompatibili, allora \\(P(A\\cap B)=0\\). Se fossero anche indipendenti, dovrebbe valere \\(P(A\\cap B)=P(A)P(B)\\). Per eventi non impossibili \\(P(A)>0\\) e \\(P(B)>0\\), quindi il prodotto è positivo: contraddizione.", theory: "prodotto" },
+      { n: "8", tag: "Interpretare dati", prompt: "Samira deve decidere se iscriversi all'università o cominciare a lavorare. Tra i giovani che lavorano il 30% è laureato; tra i disoccupati il 20% è laureato. Inoltre la probabilità che un giovane trovi lavoro entro breve è 80%. Quale scelta conviene sulla base statistica?", solution: "I dati non provano un rapporto causa-effetto: dicono come sono distribuiti laureati e non laureati tra occupati e disoccupati. Se si usa Bayes con quei dati, tra i laureati la probabilità stimata di lavorare è \\(\\frac{0,30\\cdot0,80}{0,30\\cdot0,80+0,20\\cdot0,20}=\\frac{6}{7}\\), alta. Ma la decisione richiede anche tempo, indirizzo scelto e obiettivi personali.", theory: "bayes" },
+      { n: "9", tag: "Test", prompt: "Si estrae una carta da un mazzo di 52. La probabilità che sia una figura oppure una carta nera è: \\(\\frac{11}{13}\\), \\(\\frac{19}{26}\\), \\(\\frac{1}{2}\\), \\(\\frac{8}{13}\\).", solution: "Figure: 12. Carte nere: 26. Figure nere: 6. Quindi \\(P=\\frac{12+26-6}{52}=\\frac{32}{52}=\\frac{8}{13}\\).", theory: "somma" },
+      { n: "10", tag: "Test", prompt: "Un'impresa fa due controlli consecutivi. Il primo rileva un difetto con probabilità 90%, il secondo con probabilità 99%. Qual è la probabilità che un pezzo difettoso sfugga a entrambi?", solution: "Sfuggire al primo controllo ha probabilità \\(0,10\\), sfuggire al secondo \\(0,01\\). Se indipendenti: \\(0,10\\cdot0,01=0,001=0,1\\%\\).", theory: "prodotto" },
+      { n: "11", tag: "Binomiale", prompt: "Lanciando una moneta sei volte, calcola la probabilità di ottenere testa al più due volte e almeno due volte.", solution: "Con moneta equa, i casi totali sono \\(2^6=64\\). Al più due teste: \\(\\binom{6}{0}+\\binom{6}{1}+\\binom{6}{2}=1+6+15=22\\), quindi \\(\\frac{11}{32}\\). Almeno due teste: \\(1-P(0)-P(1)=1-\\frac{7}{64}=\\frac{57}{64}\\).", theory: "bernoulli" },
+      { n: "12", tag: "Dado non regolare", prompt: "Un dado non è regolare: le facce 1 e 6 hanno la stessa probabilità, doppia rispetto a ciascuna delle altre. Calcola la probabilità di un numero pari, multiplo di 3, primo.", solution: "Se le facce 2,3,4,5 hanno probabilità \\(x\\), le facce 1 e 6 hanno probabilità \\(2x\\). Allora \\(8x=1\\), quindi \\(x=\\frac{1}{8}\\). Pari: \\(\\frac{1}{8}+\\frac{1}{8}+\\frac{1}{4}=\\frac{1}{2}\\). Multiplo di 3: \\(\\frac{1}{8}+\\frac{1}{4}=\\frac{3}{8}\\). Primo: \\(2,3,5\\), quindi \\(\\frac{3}{8}\\).", theory: "classica" },
+      { n: "13", tag: "Azienda", prompt: "Trenini difettosi al 4%; il controllo è efficiente al 99%. Calcola la probabilità che un trenino guasto sia acquistato, sia individuato al controllo, e che su 5 trenini almeno uno sia guasto e non riconosciuto.", solution: "Guasto e acquistato: \\(0,04\\cdot0,01=0,0004=0,04\\%\\). Guasto e individuato: \\(0,04\\cdot0,99=0,0396=3,96\\%\\). Per 5 trenini, almeno uno guasto non riconosciuto: \\(1-(1-0,0004)^5\\approx0,001998\\), cioè 0,1998%.", theory: "bernoulli" },
+      { n: "14", tag: "Marketing", prompt: "Un negozio invia una comunicazione: il 60% dei clienti la leggerà e il 35% di chi la legge acquisterà. Calcola la probabilità che un cliente legga e acquisti, oppure legga e non acquisti.", solution: "Legga e acquisti: \\(0,60\\cdot0,35=0,21\\). Legga e non acquisti: \\(0,60\\cdot0,65=0,39\\).", theory: "prodotto" },
+      { n: "15", tag: "Dolci", prompt: "Su un vassoio ci sono 12 brioche, 7 alla crema e 5 alla marmellata, e 8 krapfen, 5 alla crema e 3 alla marmellata. Si sceglie un dolce a caso. Calcola la probabilità di prendere una brioche oppure un dolce con marmellata.", solution: "I dolci sono 20. Le brioche sono 12, i dolci con marmellata sono 8, le brioche con marmellata sono 5. Quindi \\(P=\\frac{12+8-5}{20}=\\frac{15}{20}=\\frac{3}{4}\\).", theory: "somma" },
+      { n: "16", tag: "Codici", prompt: "Un codice è formato da quattro lettere scelte tra 5 vocali e 5 consonanti, senza reimmissione. Calcola la probabilità che contenga almeno una vocale e che contenga vocali e consonanti alternate.", solution: "I codici possibili sono \\(10\\cdot9\\cdot8\\cdot7\\). Almeno una vocale: complemento di quattro consonanti, \\(1-\\frac{5\\cdot4\\cdot3\\cdot2}{10\\cdot9\\cdot8\\cdot7}=\\frac{41}{42}\\). Alternate: schemi VCVC o CVCV, quindi \\(2\\cdot(5\\cdot5\\cdot4\\cdot4)\\) codici; la probabilità è \\(\\frac{800}{5040}=\\frac{10}{63}\\).", theory: "classica" },
+      { n: "17", tag: "Carte", prompt: "Da un mazzo di 40 carte si estrae una carta. Calcola la probabilità che sia una figura; una figura o un asso; un asso; una figura o una carta di coppe; una carta di bastoni.", solution: "Figura: \\(\\frac{12}{40}=\\frac{3}{10}\\). Figura o asso: \\(\\frac{12+4}{40}=\\frac{2}{5}\\). Asso: \\(\\frac{4}{40}=\\frac{1}{10}\\). Figura o coppe: \\(\\frac{12+10-3}{40}=\\frac{19}{40}\\). Bastoni: \\(\\frac{10}{40}=\\frac{1}{4}\\).", theory: "somma" },
+      { n: "18", tag: "Dadi", prompt: "Lanciando un dado due volte, calcola la probabilità che la somma sia maggiore di 8 o minore di 10; maggiore di 8 e minore di 10; maggiore di 8 sapendo che è minore di 10.", solution: "La condizione 'maggiore di 8 o minore di 10' copre tutte le somme possibili, quindi probabilità 1. 'Maggiore di 8 e minore di 10' significa somma 9: \\(\\frac{4}{36}=\\frac{1}{9}\\). Sapendo che la somma è minore di 10, i casi sono 30; tra questi, quelli con somma maggiore di 8 sono 4, quindi \\(\\frac{4}{30}=\\frac{2}{15}\\).", theory: "condizionata" },
+      { n: "19", tag: "Moda", prompt: "Un negozio ha venduto 1500 capi: 825 jeans, 375 T-shirt e 300 felpe. Stima quanti capi di ciascun tipo venderà su 1700 capi.", solution: "Le frequenze sono: jeans \\(\\frac{825}{1500}=0,55\\), T-shirt \\(0,25\\), felpe \\(0,20\\). Su 1700 capi: jeans 935, T-shirt 425, felpe 340.", theory: "classica" },
+      { n: "20", tag: "Condizionata", prompt: "Calcola la probabilità che una carta estratta da un mazzo di 52 sia un cinque, sapendo che non è una figura.", solution: "Nel mazzo francese le figure sono 12, quindi le carte non figura sono 40. I cinque sono 4 e non sono figure. Quindi \\(P=\\frac{4}{40}=\\frac{1}{10}\\).", theory: "condizionata" },
+      { n: "21", tag: "Azienda", prompt: "Una fabbrica di giocattoli rileva che il 9% delle automobiline ha difetti nel contatto delle pile, il 4% ha ruote poco scorrevoli e il 2% ha entrambi i difetti. Calcola le probabilità richieste.", parts: ["abbia un difetto o l'altro;", "sia difettosa nel contatto sapendo che è poco scorrevole;", "abbia solo il difetto del contatto elettrico;", "non abbia difetti."], solution: "Difetto o l'altro: \\(0,09+0,04-0,02=0,11\\). Contatto sapendo ruote: \\(\\frac{0,02}{0,04}=0,5\\). Solo contatto: \\(0,09-0,02=0,07\\). Nessun difetto: \\(1-0,11=0,89\\).", theory: "condizionata" },
+      { n: "22", tag: "Azienda", prompt: "Il reparto A produce il 60% delle piastrelle e il B il 40%. A produce 60% prima qualità, 35% seconda, 5% scarto. B produce 66% prima, 30% seconda, 4% scarto. Calcola prima qualità, seconda e scarto totali; poi \\(P(A\\mid\\text{prima qualità})\\).", solution: "Prima qualità: \\(0,60\\cdot0,60+0,40\\cdot0,66=0,624\\). Seconda: \\(0,60\\cdot0,35+0,40\\cdot0,30=0,33\\). Scarto: \\(0,60\\cdot0,05+0,40\\cdot0,04=0,046\\). Sapendo che è prima qualità: \\(\\frac{0,60\\cdot0,60}{0,624}=\\frac{15}{26}\\).", theory: "bayes" },
+      { n: "23", tag: "Trasporti", prompt: "Un pullman arriva in ritardo 4 volte su 10. In una settimana di 6 giorni calcola la probabilità che sia sempre puntuale, sempre in ritardo, almeno una volta in ritardo, almeno 5 volte in ritardo.", solution: "Con \\(p=0,4\\) ritardo e \\(q=0,6\\) puntualità: sempre puntuale \\(0,6^6=\\frac{729}{15625}\\). Sempre in ritardo \\(0,4^6=\\frac{64}{15625}\\). Almeno una volta in ritardo \\(1-0,6^6=\\frac{14896}{15625}\\). Almeno 5 ritardi: \\(\\binom{6}{5}0,4^5 0,6+0,4^6=\\frac{128}{3125}\\).", theory: "bernoulli" },
+      { n: "24", tag: "Fiori", prompt: "Un fiorista ha tre vasi con 14 rose, 10 gerbere e 12 tulipani. Prendendo due fiori a caso, calcola la probabilità che siano due rose; una gerbera e un tulipano.", solution: "Totale 36 fiori. Due rose: \\(\\frac{14}{36}\\cdot\\frac{13}{35}=\\frac{13}{90}\\). Una gerbera e un tulipano, in qualunque ordine: \\(2\\cdot\\frac{10}{36}\\cdot\\frac{12}{35}=\\frac{4}{21}\\).", theory: "prodotto" },
+      { n: "25", tag: "Percorsi", prompt: "Giorgio va al lavoro 3 volte su 10 con un mezzo che lo porta in via Mazzini; Mario parcheggia in via Mazzini 2 volte su 10. Calcola la probabilità che oggi siano entrambi in via Mazzini.", solution: "Si moltiplicano le probabilità indipendenti: \\(\\frac{3}{10}\\cdot\\frac{2}{10}=0,06\\).", theory: "prodotto" },
+      { n: "26", tag: "Classi", prompt: "Due classi hanno ugual numero di alunni. Nella prima l'80% risolve il problema, nella seconda il 60%. Scelto a caso un alunno che ha risolto, qual è la probabilità che sia della seconda classe?", solution: "Le due classi hanno lo stesso peso iniziale. Quindi \\(P(\\text{seconda}\\mid R)=\\frac{0,5\\cdot0,60}{0,5\\cdot0,80+0,5\\cdot0,60}=\\frac{0,60}{1,40}=\\frac{3}{7}\\).", theory: "bayes" },
+      { n: "27", tag: "Azienda", prompt: "I pacchetti perfetti sono il 90%; una macchina scarta il 96% dei difettosi. Calcola la probabilità che un pacchetto superi il controllo, sia perfetto avendo superato il controllo, sia difettoso pur avendo superato il controllo.", solution: "Supera il controllo se è perfetto oppure se è difettoso e non viene scartato: \\(0,90+0,10\\cdot0,04=0,904\\). Perfetto sapendo che ha superato: \\(\\frac{0,90}{0,904}\\approx0,9956\\). Difettoso sapendo che ha superato: \\(\\frac{0,004}{0,904}\\approx0,0044\\).", theory: "bayes" },
+      { n: "28", tag: "Tiro al bersaglio", prompt: "Due giocatori tirano a un bersaglio. Il primo colpisce con probabilità 0,7, il secondo con probabilità 0,5. Calcola la probabilità che entrambi colpiscano, nessuno colpisca, solo uno colpisca.", solution: "Entrambi: \\(0,7\\cdot0,5=0,35\\). Nessuno: \\(0,3\\cdot0,5=0,15\\). Solo uno: \\(0,7\\cdot0,5+0,3\\cdot0,5=0,5\\).", theory: "prodotto" },
+      { n: "29", tag: "Estrazioni", prompt: "Su un aereo viaggiano 130 italiani, 45 inglesi, 25 cinesi. Si estraggono tre nomi. Calcola la probabilità di due italiani e un cinese o un italiano e due cinesi; un italiano, un inglese e un cinese.", solution: "Totale \\(\\binom{200}{3}\\). Primo caso: \\(\\frac{\\binom{130}{2}25+130\\binom{25}{2}}{\\binom{200}{3}}\\approx0,19\\). Secondo caso: \\(\\frac{130\\cdot45\\cdot25}{\\binom{200}{3}}\\approx0,11\\).", theory: "classica" },
+      { n: "30", tag: "Azienda", prompt: "Un'impresa compra tre lotti da 10 frullatori. Ogni frullatore ha difetto elettrico 5%, meccanico 7%, entrambi 2%. L'impresa restituisce un lotto se ha più di due frullatori con almeno un difetto. Qual è la probabilità che restituisca tutti e tre i lotti?", solution: "Un frullatore ha almeno un difetto con probabilità \\(0,05+0,07-0,02=0,10\\). Per un lotto da 10: \\(P(X>2)=1-[0,9^{10}+10\\cdot0,1\\cdot0,9^9+\\binom{10}{2}0,1^2 0,9^8]\\approx0,07019\\). Per tre lotti: \\(0,07019^3\\approx0,000346\\).", theory: "bernoulli" }
+    ];
+
+    const verification = [
+      {
+        n: "A1", tag: "Prova A",
+        prompt: "Ai rigori vengono scelti cinque calciatori A, B, C, D, E con probabilità di segnare \\(0,6;0,7;0,5;0,9;0,8\\). Calcola: uno solo segni; tutti e cinque segnino; nessuno segni.",
+        solution: "Uno solo segna: somma dei cinque casi in cui uno segna e gli altri sbagliano, cioè \\(0,0728\\). Tutti segnano: \\(0,6\\cdot0,7\\cdot0,5\\cdot0,9\\cdot0,8=0,1512\\). Nessuno segna: \\(0,4\\cdot0,3\\cdot0,5\\cdot0,1\\cdot0,2=0,0012\\).",
+        theory: "prodotto",
+        quiz: [{ label: "a. uno solo segni", answer: "0,0728" }, { label: "b. tutti segnino", answer: "0,1512" }, { label: "c. nessuno segni", answer: "0,0012" }]
+      },
+      {
+        n: "A2", tag: "Prova A",
+        prompt: "Da un mazzo di 40 carte si estraggono consecutivamente due carte, senza reimmettere la prima. Calcola la probabilità che siano due carte di bastoni o due figure. Calcola anche il caso con reimmissione.",
+        solution: "Senza reimmissione: \\(P(BB)=\\frac{10}{40}\\frac{9}{39}\\), \\(P(FF)=\\frac{12}{40}\\frac{11}{39}\\), intersezione: due figure di bastoni \\(\\frac{3}{40}\\frac{2}{39}\\). Quindi \\(\\frac{9}{65}\\). Con reimmissione: \\(\\left(\\frac{10}{40}\\right)^2+\\left(\\frac{12}{40}\\right)^2-\\left(\\frac{3}{40}\\right)^2=\\frac{47}{320}\\).",
+        theory: "somma",
+        quiz: [{ label: "senza reimmissione", answer: "9/65" }, { label: "con reimmissione", answer: "47/320" }]
+      },
+      {
+        n: "A3", tag: "Prova A",
+        prompt: "Un tifoso scommetterebbe 21 euro per riceverne 24 in caso di vittoria del pilota preferito. Un sondaggio dà la vittoria a tale pilota 3 su 4. Calcola la probabilità di vittoria secondo il tifoso e secondo il sondaggio.",
+        solution: "Probabilità soggettiva del tifoso: \\(\\frac{21}{24}=\\frac{7}{8}=0,875\\). Probabilità secondo il sondaggio: \\(\\frac{3}{4}=0,75\\).",
+        theory: "soggettiva",
+        quiz: [{ label: "tifoso", answer: "7/8" }, { label: "sondaggio", answer: "3/4" }]
+      },
+      {
+        n: "A4", tag: "Prova A",
+        prompt: "I maglioni Monti Sport sono sottoposti a due controlli indipendenti. I maglioni difettosi superano il primo controllo nel 5% dei casi e il secondo nel 4%. Calcola la probabilità che un maglione difettoso superi entrambi i controlli, venga posto in vendita come fallato, venga scartato.",
+        solution: "Il maglione è già noto come difettoso. Supera entrambi i controlli: \\(0,05\\cdot0,04=0,002\\). Viene venduto come fallato se supera un solo controllo: non supera il primo e supera il secondo, oppure supera il primo e non supera il secondo. Quindi \\(0,95\\cdot0,04+0,05\\cdot0,96=0,086\\). Viene scartato se non supera nessuno dei due controlli: \\(0,95\\cdot0,96=0,912\\).",
+        theory: "prodotto",
+        quiz: [{ label: "a. superi entrambi", answer: "0,002" }, { label: "b. venduto come fallato", answer: "0,086" }, { label: "c. scartato", answer: "0,912" }]
+      },
+      {
+        n: "B1", tag: "Prova B",
+        prompt: "Due orologi antichi hanno probabilità di funzionare rispettivamente 90% e 70%. Calcola: entrambi funzionino; almeno uno funzioni; uno solo non funzioni.",
+        solution: "Entrambi: \\(0,9\\cdot0,7=0,63\\). Almeno uno: \\(1-0,1\\cdot0,3=0,97\\). Uno solo non funziona: \\(0,1\\cdot0,7+0,9\\cdot0,3=0,34\\).",
+        theory: "prodotto",
+        quiz: [{ label: "a. entrambi", answer: "0,63" }, { label: "b. almeno uno", answer: "0,97" }, { label: "c. uno solo non funziona", answer: "0,34" }]
+      },
+      {
+        n: "B2", tag: "Prova B",
+        prompt: "Vengono lanciati due dadi. Calcola la probabilità che la somma sia 9. Sapendo che il primo numero è dispari, calcola la probabilità che la somma sia 8.",
+        solution: "Somma 9: \\((3,6),(4,5),(5,4),(6,3)\\), quindi \\(\\frac{4}{36}=\\frac{1}{9}\\). Sapendo che il primo è dispari, i casi sono 18; per somma 8 sono \\((3,5),(5,3)\\), quindi \\(\\frac{2}{18}=\\frac{1}{9}\\).",
+        theory: "condizionata",
+        quiz: [{ label: "a. somma 9", answer: "1/9" }, { label: "b. somma 8 dato primo dispari", answer: "1/9" }]
+      },
+      {
+        n: "B3", tag: "Prova B",
+        prompt: "Secondo dati dell'aviazione civile, su 34,5 milioni di voli si sono verificati 85 incidenti. Calcola la probabilità che ci sia un incidente durante un viaggio in aereo.",
+        solution: "La stima statistica è \\(\\frac{85}{34\\,500\\,000}\\approx0,00000246\\), cioè circa \\(0,000246\\%\\).",
+        theory: "classica",
+        quiz: [{ label: "probabilità", answer: "85/34500000" }]
+      },
+      {
+        n: "B4", tag: "Prova B",
+        prompt: "Nell'impresa Tessile Italiana i reparti A e B producono il 40% e il 60% delle camicie. Le percentuali difettose sono 3% e 5%. Calcola: una camicia sia difettosa; se difettosa, sia prodotta da B; se perfetta, sia prodotta da A.",
+        solution: "Difettosa: \\(0,40\\cdot0,03+0,60\\cdot0,05=0,042\\). Da B sapendo difettosa: \\(\\frac{0,60\\cdot0,05}{0,042}=\\frac{5}{7}\\). Da A sapendo perfetta: \\(\\frac{0,40\\cdot0,97}{1-0,042}=\\frac{194}{479}\\), circa 0,405.",
+        theory: "bayes",
+        quiz: [{ label: "a. difettosa", answer: "0,042" }, { label: "b. da B se difettosa", answer: "5/7" }, { label: "c. da A se perfetta", answer: "194/479" }]
+      }
+    ];
+
+    const sections = {
+      fondamentali: {
+        title: "Fondamentali",
+        subtitle: "Undici esercizi per rimettere in moto il vocabolario della probabilità: casi favorevoli, eventi, condizionata, prove ripetute e Bayes.",
+        data: fundamentals
+      },
+      competenze: {
+        title: "Competenze",
+        subtitle: "Trenta esercizi dai file competenza 1 e competenza 2: argomentare, modellizzare, scegliere la formula e controllare se il risultato ha senso.",
+        data: competences
+      },
+      verifica: {
+        title: "Verifica competenze",
+        subtitle: "Prove A e B con svolgimenti a scomparsa. Puoi attivare la modalità test scrivendo le risposte e calcolando il punteggio finale.",
+        data: verification
+      }
+    };
+
+    const panelIds = {
+      fondamentali: "panel-fondamentali",
+      competenze: "panel-competenze",
+      verifica: "panel-verifica"
+    };
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function renderHero(section) {
+      return `
+        <div class="hero">
+          <h2>${section.title}</h2>
+          <p>${section.subtitle}</p>
+        </div>
+      `;
+    }
+
+    function renderExercise(ex, key, isQuiz) {
+      const id = `${key}-${ex.n}`;
+      const parts = ex.parts ? `<ol class="parts">${ex.parts.map(part => `<li>${part}</li>`).join("")}</ol>` : "";
+      const th = ex.theory && theory[ex.theory] ? theory[ex.theory] : null;
+      const quiz = isQuiz && ex.quiz ? renderQuiz(ex) : "";
+      return `
+        <article class="exercise" id="${id}" data-exercise="${escapeHtml(ex.n)}">
+          <div class="exercise-header">
+            <div class="badge">${escapeHtml(ex.n)}</div>
+            <h3>${ex.prompt}</h3>
+            <span class="tag">${escapeHtml(ex.tag)}</span>
+          </div>
+          <div class="exercise-body">
+            ${parts}
+            ${quiz}
+            <details>
+              <summary>Svolgimento</summary>
+              <div class="detail-content"><p>${ex.solution}</p></div>
+            </details>
+            ${th ? `<details class="theory"><summary>${th.title}</summary><div class="detail-content"><p>${th.body}</p></div></details>` : ""}
+          </div>
+        </article>
+      `;
+    }
+
+    function renderQuiz(ex) {
+      return `
+        <div class="quiz-panel" data-quiz="${escapeHtml(ex.n)}">
+          ${ex.quiz.map((item, index) => `
+            <label class="quiz-row">
+              <span>${escapeHtml(item.label)}</span>
+              <input type="text" data-answer="${escapeHtml(item.answer)}" aria-label="${escapeHtml(ex.n + " " + item.label)}" placeholder="es. 0,63 oppure 63%">
+            </label>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderPanel(key) {
+      const section = sections[key];
+      const quizTools = key === "verifica" ? `
+        <div class="section-note">
+          <mark>Modalità test</mark>: scrivi le risposte nei campi. Sono accettate frazioni, decimali con virgola o punto e percentuali. Poi premi "Calcola punteggio".
+          <div class="score-area">
+            <button class="score-button" type="button" id="scoreButton">Calcola punteggio</button>
+            <button class="tool-button" type="button" id="resetQuiz">Svuota risposte</button>
+            <span class="score-output" id="scoreOutput" aria-live="polite"></span>
+          </div>
+        </div>
+      ` : "";
+      return `
+        ${renderHero(section)}
+        ${quizTools}
+        ${section.data.map(ex => renderExercise(ex, key, key === "verifica")).join("")}
+      `;
+    }
+
+    function renderJumps(key) {
+      const jumpList = document.getElementById("jumpList");
+      const sideTitle = document.getElementById("sideTitle");
+      sideTitle.textContent = sections[key].title === "Verifica competenze" ? "Esercizi verifica" : `Esercizi ${sections[key].title.toLowerCase()}`;
+      jumpList.innerHTML = sections[key].data.map(ex => {
+        const id = `${key}-${ex.n}`;
+        return `<a class="jump-link" href="#${id}">${escapeHtml(ex.n)} · ${escapeHtml(ex.tag)}</a>`;
+      }).join("");
+    }
+
+    function activateTab(key) {
+      document.querySelectorAll(".tab-button").forEach(btn => {
+        btn.setAttribute("aria-selected", String(btn.dataset.tab === key));
+      });
+      document.querySelectorAll(".panel").forEach(panel => panel.classList.remove("active"));
+      document.getElementById(panelIds[key]).classList.add("active");
+      renderJumps(key);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
+    }
+
+    function normalizeAnswer(value) {
+      let raw = value.trim().toLowerCase().replace(/\s+/g, "");
+      if (!raw) return NaN;
+      const percent = raw.endsWith("%");
+      raw = raw.replace("%", "").replace(",", ".");
+      let number;
+      if (raw.includes("/")) {
+        const [a, b] = raw.split("/").map(Number);
+        number = b ? a / b : NaN;
+      } else {
+        number = Number(raw);
+      }
+      if (percent) number = number / 100;
+      return number;
+    }
+
+    function checkQuiz() {
+      const inputs = [...document.querySelectorAll("#panel-verifica input[data-answer]")];
+      let correct = 0;
+      inputs.forEach(input => {
+        const expected = normalizeAnswer(input.dataset.answer);
+        const given = normalizeAnswer(input.value);
+        const row = input.closest(".quiz-row");
+        row.classList.remove("correct", "wrong");
+        if (!Number.isFinite(given)) {
+          row.classList.add("wrong");
+          return;
+        }
+        const tolerance = Math.max(0.0008, Math.abs(expected) * 0.006);
+        if (Math.abs(given - expected) <= tolerance) {
+          correct += 1;
+          row.classList.add("correct");
+        } else {
+          row.classList.add("wrong");
+        }
+      });
+      const score = Math.round((correct / inputs.length) * 100);
+      document.getElementById("scoreOutput").textContent = `${correct}/${inputs.length} risposte corrette · punteggio ${score}/100`;
+    }
+
+    function resetQuiz() {
+      document.querySelectorAll("#panel-verifica input[data-answer]").forEach(input => {
+        input.value = "";
+        input.closest(".quiz-row").classList.remove("correct", "wrong");
+      });
+      document.getElementById("scoreOutput").textContent = "";
+    }
+
+    document.getElementById(panelIds.fondamentali).innerHTML = renderPanel("fondamentali");
+    document.getElementById(panelIds.competenze).innerHTML = renderPanel("competenze");
+    document.getElementById(panelIds.verifica).innerHTML = renderPanel("verifica");
+    renderJumps("fondamentali");
+
+    document.querySelectorAll(".tab-button").forEach(btn => {
+      btn.addEventListener("click", () => activateTab(btn.dataset.tab));
+    });
+
+    document.getElementById("dsaToggle").addEventListener("click", event => {
+      const active = document.body.classList.toggle("dsa-mode");
+      event.currentTarget.setAttribute("aria-pressed", String(active));
+    });
+
+    document.addEventListener("toggle", event => {
+      if (event.target.open && window.MathJax && MathJax.typesetPromise) {
+        MathJax.typesetPromise([event.target]);
+      }
+    }, true);
+
+    document.getElementById("scoreButton").addEventListener("click", checkQuiz);
+    document.getElementById("resetQuiz").addEventListener("click", resetQuiz);
+
+    if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
+  </script>
+</body>
+</html>
